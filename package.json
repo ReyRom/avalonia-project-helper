@@ -3,9 +3,12 @@
   "displayName": "avalonia-project-helper",
   "description": "Commands to create Avalonia project",
   "version": "0.0.1",
+  "icon": "logo.png",
   "repository": {
-    
+    "type": "git",
+    "url": "https://github.com/ReyRom/avalonia-project-helper"
   },
+  "homepage": "https://github.com/ReyRom/avalonia-project-helper/blob/master/README.md",
   "engines": {
     "vscode": "^1.97.0"
   },
