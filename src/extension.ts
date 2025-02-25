@@ -3,7 +3,7 @@ import { exec } from "child_process";
 import * as util from "util";
 
 export function activate(context: vscode.ExtensionContext) {
-    let disposable = vscode.commands.registerCommand('avalonia-project-helper.createProject', async () => {
+    let createCommand = vscode.commands.registerCommand('avalonia-project-helper.createProject', async () => {
 
         const options: vscode.OpenDialogOptions = {
             canSelectMany: false,
@@ -92,8 +92,8 @@ export function activate(context: vscode.ExtensionContext) {
         // Запуск команды
         await vscode.window.withProgress(
         {
-            location: vscode.ProgressLocation.Window, // Индикатор в строке состояния
-            title: "Execute command: ",
+            location: vscode.ProgressLocation.Notification, // Индикатор в строке состояния
+            title: "Executing",
             cancellable: false
         },
         async (progress) => {
@@ -102,14 +102,42 @@ export function activate(context: vscode.ExtensionContext) {
                 await execPromise(`cd ${path} && ${command}`);
                 progress.report({ message: "Open project..." });
                 let uri = vscode.Uri.file(`${path}/${projectName}`);
-                await vscode.commands.executeCommand(`vscode.openFolder`,uri);
+                const open = await vscode.window.showInformationMessage(`Avalonia project created in ${path}/${projectName}`, "Open", "Open New Window")
+                if (open === "Open"){
+                    await vscode.commands.executeCommand(`vscode.openFolder`,uri, {forceNewWindow: false});
+                }
+                else if (open === "Open New Window"){
+                    await vscode.commands.executeCommand(`vscode.openFolder`,uri, {forceNewWindow: true});
+                }
+            }catch (error) {
+                await vscode.window.showErrorMessage(`Error while command executing: ${error}`);
+            }
+        });
+        
+    });
+
+    let installCommand = vscode.commands.registerCommand('avalonia-project-helper.installTemplates', async () => {
+        const execPromise = util.promisify(exec);
+        // Запуск команды
+        await vscode.window.withProgress(
+        {
+            location: vscode.ProgressLocation.Notification, // Индикатор в строке состояния
+            title: "Installing templates...",
+            cancellable: false,
+            
+        },
+        async (progress) => {
+            try{
+                await execPromise(`dotnet new install Avalonia.Templates`);
+                await vscode.window.showInformationMessage("Avalonia templates was installed", "Ok")
             }catch (error) {
                 await vscode.window.showErrorMessage(`Error while command executing: ${error}`);
             }
         });
     });
 
-    context.subscriptions.push(disposable);
+
+    context.subscriptions.push(createCommand, installCommand);
 }
 
 export function deactivate() {}
